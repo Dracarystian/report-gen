@@ -10,7 +10,7 @@ VERSION = "1.0.0"
 
 # Configuraciones de OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL = "gpt-4"
+OPENAI_MODEL = "gpt-4o"  # Versión con mayor capacidad de tokens
 OPENAI_TEMPERATURE = 0.4
 
 # Configuraciones de Jira
@@ -20,21 +20,10 @@ JIRA_CONFIG = {
     "token": os.getenv("JIRA_API_TOKEN"),
 }
 
-# Configuraciones de Figma 
-#FIGMA_CONFIG = {
-#    "access_token": os.getenv("FIGMA_ACCESS_TOKEN"),
-#    "team_id": os.getenv("FIGMA_TEAM_ID"),
-#}
-
-# Configuraciones de Mautic (ejemplo)
-#MAUTIC_CONFIG = {
-#    "url": os.getenv("MAUTIC_URL"),
-#    "username": os.getenv("MAUTIC_USERNAME"),
-#    "password": os.getenv("MAUTIC_PASSWORD"),
-#}
-
-# Configuraciones de Mautic (ejemplo)
-
+# Configuración de Excel
+EXCEL_CONFIG = {
+    "data_dir": "data"  
+}
 
 # Lista de integraciones disponibles
-AVAILABLE_INTEGRATIONS = ["jira"] #figma, mautic, etc
+AVAILABLE_INTEGRATIONS = ["jira", "excel"]
