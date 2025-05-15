@@ -3,17 +3,19 @@ import config
 from datetime import datetime
 from integrations.jira import JiraIntegration
 from integrations.excel import ExcelIntegration
+from integrations.database import DatabaseIntegration  
 from services.openai import generate_report
 from services.exports import convert_report
 
 def main():
     print(f"🚀 Bienvenido a {config.APP_NAME} v{config.VERSION}")
-    
-    # Mostrar integraciones disponibles
+
+    # Mostrar integraciones disponibles con nombres amigables
     print("\n📊 Integraciones disponibles:")
     for i, integration in enumerate(config.AVAILABLE_INTEGRATIONS, 1):
-        print(f"{i}. {integration.capitalize()}")
-    
+        display_name = config.INTEGRATION_DISPLAY_NAMES.get(integration, integration.capitalize())
+        print(f"{i}. {display_name}")
+
     # Selección de integración
     try:
         choice = int(input("\nSeleccione una integración (número): ")) - 1
@@ -21,14 +23,19 @@ def main():
     except (ValueError, IndexError):
         print("❌ Selección inválida. Usando Jira por defecto.")
         selected = "jira"
-    
+
     print(f"\n🔄 Inicializando integración con {selected.capitalize()}...")
-    
-    # Inicializar la integración seleccionada
-    if selected == "jira":
-        handle_jira_integration()
-    elif selected == "excel":
-        handle_excel_integration()
+
+    # Diccionario de casos de uso (switch)
+    use_cases = {
+        "jira": handle_jira_integration,
+        "excel": handle_excel_integration,
+        "database": handle_database_integration
+    }
+
+    handler = use_cases.get(selected)
+    if handler:
+        handler()
     else:
         print(f"❌ Integración {selected} no implementada.")
 
@@ -189,6 +196,44 @@ def handle_excel_integration():
     filename_base = f"excel_{os.path.splitext(selected_file)[0]}"
     output_file = select_and_export_format(report, filename_base)
     
+    # Mostrar vista previa
+    print("\n📄 Vista previa del informe:\n")
+    print(report[:500] + "...\n")
+    print(f"Informe completo disponible en: {output_file}")
+
+def handle_database_integration():
+    """Maneja el flujo de trabajo para integración con base de datos."""
+    integration = DatabaseIntegration()
+    success, message = integration.verify_connection()
+    if not success:
+        print(f"❌ {message}")
+        return
+
+    print(f"✅ {message}")
+
+    # Obtener datos de la tabla users
+    data, msg = integration.fetch_database_overview()
+    print(f"\n📁 {msg}")
+
+    if not data:
+        print("❌ No se encontraron datos en la tabla 'users'.")
+        return
+
+    # Generar datos para el informe
+    report_data = integration.generate_report_data(data)
+
+    # Generar informe con AI
+    print("\n🧠 Generando informe con OpenAI...")
+    report = generate_report(
+        report_data,
+        "Base de datos - users",
+        report_focus="general"
+    )
+
+    # Seleccionar formato de salida
+    filename_base = "db_users"
+    output_file = select_and_export_format(report, filename_base)
+
     # Mostrar vista previa
     print("\n📄 Vista previa del informe:\n")
     print(report[:500] + "...\n")

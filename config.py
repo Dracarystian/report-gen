@@ -26,4 +26,14 @@ EXCEL_CONFIG = {
 }
 
 # Lista de integraciones disponibles
-AVAILABLE_INTEGRATIONS = ["jira", "excel"]
+AVAILABLE_INTEGRATIONS = [
+    "jira",
+    "excel",
+    "database"
+    ]
+
+INTEGRATION_DISPLAY_NAMES = {
+    "jira": "Jira",
+    "excel": "Excel",
+    "database": "Consulta a la base de Dapper"
+}

@@ -31,21 +31,37 @@ class DatabaseIntegration:
         except Exception as e:
             return False, f"Error de conexión: {e}"
 
-    def fetch_users_table(self, limit=1000):
-        """Obtiene los datos de la tabla 'users'."""
+    def fetch_database_overview(self):
+        """
+        Obtiene un resumen general de la base de datos: nombres de tablas y las primeras filas de cada una.
+        """
         try:
-            query = f"SELECT * FROM users LIMIT {limit}"
-            df = pd.read_sql(query, self.engine)
-            return df.to_dict(orient="records"), "Datos de la tabla 'users' obtenidos correctamente."
+            inspector = sqlalchemy.inspect(self.engine)
+            tables = inspector.get_table_names()
+            overview = {}
+            for table in tables:
+                try:
+                    df = pd.read_sql(f"SELECT * FROM {table} LIMIT 5", self.engine)
+                    df = df.astype(str)
+                    overview[table] = {
+                        "columns": list(df.columns),
+                        "sample_rows": df.to_dict(orient="records")
+                    }
+                except Exception as e:
+                    overview[table] = {
+                        "columns": [],
+                        "sample_rows": [],
+                        "error": str(e)
+                    }
+            return overview, f"Resumen de {len(tables)} tablas obtenido correctamente."
         except Exception as e:
-            return None, f"Error al obtener datos: {e}"
+            return None, f"Error al obtener resumen de la base de datos: {e}"
 
     def generate_report_data(self, data):
         """Solicita contexto al usuario y prepara los datos para el informe."""
-        print("\nDescribe brevemente el contexto del informe que deseas generar sobre la tabla 'users':")
+        print("\nDescribe brevemente el contexto del informe que deseas generar sobre la base de datos:")
         context = input("Contexto: ")
         return {
             "contexto_usuario": context,
-            "tabla": "users",
-            "datos": data
+            "resumen_bd": data
         }
